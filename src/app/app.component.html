@@ -1,0 +1,46 @@
+<td-layout-nav>
+
+  <!-- Top Nav -->
+  <div td-toolbar-content layout="row" layout-align="start center" flex>
+    <button md-icon-button class="td-menu-button" (click)="sidenav.toggle()" mdTooltip="Main menu">
+      <md-icon>menu</md-icon>
+    </button>
+    <span>Reactive Example</span>
+    <span flex></span>
+    <button md-icon-button><md-icon>apps</md-icon></button>
+    <button md-icon-button><md-icon>notifications</md-icon></button>
+  </div>
+
+  <!-- Left side Nav -->
+  <md-sidenav-container fullscreen>
+    <md-sidenav #sidenav mode="side" opened="true" style="width:257px;border-right:1px solid #ccc">
+      <div flex class="md-content bgc-grey-50">
+        <md-nav-list>
+          <a md-list-item><md-icon>home</md-icon>Home</a>
+          <a md-list-item><md-icon>flight</md-icon>Flights</a>
+          <a md-list-item><md-icon>contacts</md-icon>Passengers</a>
+          <a md-list-item><md-icon>history</md-icon>Search History</a>
+          <a md-list-item><md-icon>account_balance_wallet</md-icon>Bookings</a>
+          <a md-list-item><md-icon>hotel</md-icon>Hotels</a>
+          <md-divider></md-divider>
+          <a md-list-item><md-icon>settings</md-icon>Settings</a>
+          <a md-list-item><md-icon>announcement</md-icon>Send feedback</a>
+          <a md-list-item><md-icon>help</md-icon>Help</a>
+        </md-nav-list>
+      </div>
+    </md-sidenav>
+
+
+    <!-- CONTENT -->
+    <dashboard></dashboard>
+    <!-- ENDE CONTENT -->
+
+
+  </md-sidenav-container>
+
+
+  <a md-fab color="accent" class="mat-fab-bottom-right fixed fab-pad">
+    <md-icon>add</md-icon>
+  </a>
+
+</td-layout-nav>
