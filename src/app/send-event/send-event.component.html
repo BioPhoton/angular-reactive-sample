@@ -1,13 +1,13 @@
-<md-select placeholder="Exercise" [(ngModel)]="selectedExerciseId" name="exercise">
-  <md-option *ngFor="let e of exercises" [value]="e.id">
+<mat-select placeholder="Exercise" [(ngModel)]="selectedExerciseId" name="exercise">
+  <mat-option *ngFor="let e of exercises" [value]="e.id">
     {{e.title}}
-  </md-option>
-</md-select>
+  </mat-option>
+</mat-select>
 
-<md-select placeholder="EventType" [(ngModel)]="selectedState" name="eventType">
-  <md-option *ngFor="let et of states" [value]="et">
+<mat-select placeholder="EventType" [(ngModel)]="selectedState" name="eventType">
+  <mat-option *ngFor="let et of states" [value]="et">
     {{et}}
-  </md-option>
-</md-select>
+  </mat-option>
+</mat-select>
 
-<button md-button (click)="postState()">Send</button>
+<button mat-button (click)="postState()">Send</button>

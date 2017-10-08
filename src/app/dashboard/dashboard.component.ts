@@ -5,7 +5,7 @@ import { ExerciseService } from './exercise.service';
 import { register } from 'ts-node/dist';
 import { BehaviorSubject, Subject } from 'rxjs/Rx';
 import { Component, OnInit } from '@angular/core';
-import { MdCheckboxChange } from '@angular/material';
+import { MatCheckboxChange } from '@angular/material';
 import { Observable } from 'rxjs/Observable';
 import { ExerciseEvent, ExerciseEventType } from './exercise-event';
 
@@ -83,7 +83,7 @@ export class DashboardComponent implements OnInit {
 
   }
 
-  filterChanged(e: Exercise, change: MdCheckboxChange) {
+  filterChanged(e: Exercise, change: MatCheckboxChange) {
     console.debug('filterChanged', change.checked, e);
     if (change.checked) {
       this.eventService.addExercise(e);

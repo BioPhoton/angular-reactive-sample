@@ -10,9 +10,9 @@ import { FormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CovalentDataTableModule, CovalentLayoutModule, CovalentMediaModule } from '@covalent/core';
 import {
-  MdSelectModule,
-  MdDialogModule, MdSidenavModule, MdToolbarModule, MdIconModule, MdTooltipModule,
-  MdListModule, MdButtonModule, MdInputModule, MdMenuModule, MdCardModule, MdSnackBarModule, MdCheckboxModule
+  MatSelectModule,
+  MatDialogModule, MatSidenavModule, MatToolbarModule, MatIconModule, MatTooltipModule,
+  MatListModule, MatButtonModule, MatInputModule, MatMenuModule, MatCardModule, MatSnackBarModule, MatCheckboxModule
 } from '@angular/material';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
@@ -21,19 +21,19 @@ import { ChartsModule } from 'ng2-charts';
 import { SendEventComponent } from './send-event/send-event.component';
 
 const CONTROL_MODULES = [
-  MdCardModule,
-  MdMenuModule,
-  MdInputModule,
-  MdButtonModule,
-  MdListModule,
-  MdIconModule,
-  MdSidenavModule,
-  MdToolbarModule,
-  MdTooltipModule,
-  MdDialogModule,
-  MdSnackBarModule,
-  MdCheckboxModule,
-  MdSelectModule,
+  MatCardModule,
+  MatMenuModule,
+  MatInputModule,
+  MatButtonModule,
+  MatListModule,
+  MatIconModule,
+  MatSidenavModule,
+  MatToolbarModule,
+  MatTooltipModule,
+  MatDialogModule,
+  MatSnackBarModule,
+  MatCheckboxModule,
+  MatSelectModule,
   CovalentLayoutModule,
   CovalentMediaModule,
   CovalentDataTableModule,
