@@ -1,4 +1,11 @@
+import { ChartData } from './chart-data';
+import { ExerciseEventService } from './exercise-event.service';
+import { Exercise } from './exercise';
+import { ExerciseService } from './exercise.service';
+import { register } from 'ts-node/dist';
+import { BehaviorSubject, Subject } from 'rxjs/Rx';
 import { Component, OnInit } from '@angular/core';
+import { MdCheckboxChange } from '@angular/material';
 import { Observable } from 'rxjs/Observable';
 import { ExerciseEvent, ExerciseEventType } from './exercise-event';
 
@@ -15,9 +22,21 @@ var iassign = require("immutable-assign");
 })
 export class DashboardComponent implements OnInit {
 
+  public chartData$: Observable<ChartData[]>;
+  public exerciseTitles$: Observable<string[]>;
+  
+  public exercises: Exercise[] = [];
+
   public barChartOptions: any = {
-    scaleShowVerticalLines: false,
-    responsive: true
+    scaleShowVerticalLines: true,
+    responsive: true,
+    scales: {
+      yAxes: [{
+          ticks: {
+            beginAtZero: true
+          }
+      }]
+  }
   };
 
   public lineChartColors:Array<any> = [
@@ -27,61 +46,54 @@ export class DashboardComponent implements OnInit {
     { backgroundColor: '#FFCC80' }
   ];
 
-  public barChartLabels: string[] = ['2006', '2007', '2008', '2009', '2010', '2011', '2012'];
   public barChartType: string = 'bar';
   public barChartLegend: boolean = true;
 
-  public barChartData: any[] = [
-    {data: [65], label: 'VIEWED'},
-    {data: [28], label: 'INPROGRESS'},
-    {data: [28], label: 'COMPLETED'},
-  ];
-
-  public barChartData$: Observable<any>;
-
-  private updateStatistics(e: ExerciseEvent) {
-    let eventTypeIndex = this.eventTypeToIndex(e.what);
-    let idIndex = this.idToIndex(e.exerciseId);
-
-    this.barChartData = iassign(
-      this.barChartData,
-      s => s[eventTypeIndex].data[idIndex],
-      s => s + 1
-    );
-
-    return this.barChartData;
-  }
-
-  private eventTypeToIndex(type: ExerciseEventType) {
-    switch (type) {
-      case 'VIEWED': return 0;
-      case 'INPROGRESS': return 1;
-      case 'COMPLETED': return 2;
-      default: throw new Error('Unsupported EventType ' + type);
-    }
-  }
-
-  private idToIndex(eventId: string) {
-    return 0;
+  constructor(
+    private exerciseService: ExerciseService,
+    private eventService: ExerciseEventService) {
   }
 
   ngOnInit(): void {
-    this.barChartData$ =
-          this
-            .register()
-            .map(event => this.updateStatistics(event))
-            .do(event => console.debug('updateStatistics', event))
-            .startWith(this.barChartData);
+
+    this.exerciseService.findAll().subscribe(
+      e => this.exercises = e,
+      err => console.error('Error Loading Exercises', err)
+    );
+
+    this.exerciseTitles$ = this.eventService.exercises$.map(e => e.map(e => e.title));
+    this.chartData$ = this.eventService.chartData$;
+    
+    this.exerciseTitles$.subscribe(t => console.debug('titles', t));
+
+
+    /*
+    this.eventService.addExercise({ id: 'b7bf16e2-46fa-4411-9b1e-2a9e05d3be82', title: 'Test 1' });
+    this.eventService.addExercise({ id: '9da01173-f6da-4409-9177-4a5a18c6b484', title: 'Test 2' });
+    */
+
+
+    /*
+    this.urls$.next([
+        'http://hpgrahsl.northeurope.cloudapp.azure.com:8080/dashboard/api/exercises/b7bf16e2-46fa-4411-9b1e-2a9e05d3be82/eventstream',
+        'http://hpgrahsl.northeurope.cloudapp.azure.com:8080/dashboard/api/exercises/9da01173-f6da-4409-9177-4a5a18c6b484/eventstream'
+    ]);
+    */
+       
+
   }
 
-  register(): Observable<ExerciseEvent> {
-
-    let event1 = new EventSource('http://hpgrahsl.northeurope.cloudapp.azure.com:8080/dashboard/api/exercises/b7bf16e2-46fa-4411-9b1e-2a9e05d3be82/eventstream');
-
-    return Observable.merge<MessageEvent>(
-      Observable.fromEvent(event1, 'message')
-    ).map(event => JSON.parse(event.data) as ExerciseEvent);
+  filterChanged(e: Exercise, change: MdCheckboxChange) {
+    console.debug('filterChanged', change.checked, e);
+    if (change.checked) {
+      this.eventService.addExercise(e);
+    }
+    else {
+      this.eventService.removeExercise(e);
+    }
   }
+
+
 }
 /*
 export class DashboardComponent {

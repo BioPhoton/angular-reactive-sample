@@ -2,37 +2,35 @@
 
   <div layout-gt-xs="row">
 
-    <div flex-gt-xs="25">
+    <div flex-gt-xs="25" layout="column">
       <md-card>
         <md-card-title>Filter</md-card-title>
         <md-divider></md-divider>
         <md-card-content>
+          <section *ngFor="let e of exercises">
+            <md-checkbox (change)="filterChanged(e, $event)">{{e.title}}</md-checkbox>
+          </section>
+        </md-card-content>
+      </md-card>
 
-          <section>
-            <md-checkbox>Example #1</md-checkbox>
-          </section>
-          <section>
-            <md-checkbox>Example #2</md-checkbox>
-          </section>
-          <section>
-            <md-checkbox>Example #3</md-checkbox>
-          </section>
-          <section>
-            <md-checkbox>Example #4</md-checkbox>
-          </section>
+      <md-card>
+        <md-card-title>Send Event</md-card-title>
+        <md-divider></md-divider>
+        <md-card-content>
+          <send-event></send-event>
         </md-card-content>
       </md-card>
     </div>
 
     <div flex-gt-xs="75">
       <md-card>
-        <md-card-title>Graph</md-card-title>
+        <md-card-title>Exercises</md-card-title>
         <md-divider></md-divider>
         <md-card-content>
           <canvas baseChart
+                  [datasets]="chartData$ | async"
+                  [labels]="exerciseTitles$ | async"
                   [colors]="lineChartColors"
-                  [datasets]="barChartData$ | async"
-                  [labels]="barChartLabels"
                   [options]="barChartOptions"
                   [legend]="barChartLegend"
                   [chartType]="barChartType"></canvas>

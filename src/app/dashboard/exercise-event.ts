@@ -1,4 +1,4 @@
-export type ExerciseEventType = 'VIEWED' | 'INPROGRESS' | 'COMPLETED';
+export type ExerciseEventType = 'VIEWED' | 'STARTED' |  'COMPLETED' | 'ABORTED';
 
 export interface ExerciseEvent {
   exerciseId: string;
