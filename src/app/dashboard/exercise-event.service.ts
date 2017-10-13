@@ -1,3 +1,5 @@
+import { HttpClient } from '@angular/common/http';
+import { EventStats } from './event-stats';
 import { BASE_URL } from '../app.tokens';
 import { ChartData } from './chart-data';
 import { ExerciseEvent, ExerciseEventType } from './exercise-event';
@@ -8,6 +10,7 @@ import { Observable } from 'rxjs/Observable';
 import { Exercise } from './exercise';
 
 declare let EventSource: any;
+
 declare let require: any;
 
 let iassign = require("immutable-assign");
@@ -15,9 +18,18 @@ let iassign = require("immutable-assign");
 @Injectable()
 export class ExerciseEventService {
 
+    // Housekeeping
+    private events = [];
+    private closeSubject = new Subject<void>();
+
+    // Source Streams
     private exercises: Exercise[] = [];
     private exercisesSubject = new BehaviorSubject<Exercise[]>([]);
     public exercises$: Observable<Exercise[]> = this.exercisesSubject.asObservable();
+
+    private exerciseAddedSubject = new Subject<Exercise>();
+
+    // Destination Streams
 
     private chartData: ChartData[] = [
         {data: [], label: 'VIEWED'},
@@ -26,51 +38,82 @@ export class ExerciseEventService {
         {data: [], label: 'ABORTED'}
       ];
 
-    private startValues$ = new BehaviorSubject<ChartData[]>(this.chartData);
-
     public chartData$: Observable<ChartData[]>;
     
     
+      public get count(): number {
+          return this.exercises.length;
+      }
 
-    constructor(@Inject(BASE_URL) private baseUrl: string) { 
+    constructor(@Inject(BASE_URL) private baseUrl: string,
+                private http: HttpClient) { 
+
+        let initValues$ = this
+                            .exerciseAddedSubject
+                            .switchMap(e => this.findInitStats(e.id))
+                            // .delay(500).map( (e): EventStats => { return { exerciseId: e.id, VIEWED: 30, ABORTED: 20, COMPLETED: 10, STARTED: 10 } } )
+                            .map(initData => this.mergeStatistics(initData));
 
         let calculatedValues$: Observable<ChartData[]> = 
                                 this
                                     .exercises$
                                     .map(e => this.mapExercisesToUrls(e))
-                                    .do(urls => console.debug('urls1', urls))
                                     .switchMap(urls => this.registerForEvents(urls))
                                     .map(event => this.updateStatistics(event))
-                                    .do(event => console.debug('updateStatistics', event))
-                                    .startWith(this.chartData);
+                                    .startWith(this.chartData)
+                                    .do(chartData => console.debug('chartData', chartData));
 
-        this.chartData$ = Observable.merge(calculatedValues$, this.startValues$);
+        this.chartData$ = Observable.merge(calculatedValues$, initValues$);
 
 
     }
+
+    findInitStats(exerciseId: string): Observable<EventStats> {
+        let url = this.baseUrl + `/exercises/${encodeURIComponent(exerciseId)}/eventstats`;
+        return this.http.get<EventStats>(url).map(stats => { return { ...stats, exerciseId} });
+    }
+
 
     public addExercise(exercise: Exercise) {
         if (this.exercises.find(e => e.id == exercise.id)) return;
 
         this.addChartData();
         this.exercises.push(exercise);
+
+        this.exerciseAddedSubject.next(exercise);
         this.exercisesSubject.next(this.exercises);
         
-        setTimeout(() => this.startValues$.next(this.chartData), 0);
     }
 
     private addChartData() {
         
         for(let i=0; i<=3; i++) {
-            let rnd = 15 + Math.floor(Math.random() * 16);
+            let init = 0;
             this.chartData = iassign(
                 this.chartData,
                 s => s[i].data,
-                data => [...data, rnd]
+                data => [...data, init]
             );
         }
 
         console.debug('new chartData', this.chartData);
+    }
+
+    private mergeStatistics(stats: EventStats): ChartData[] {
+
+        let initValues = [stats.VIEWED, stats.STARTED, stats.COMPLETED, stats.ABORTED];
+        let index = this.idToIndex(stats.exerciseId);
+
+        for(let i=0; i<initValues.length; i++) {
+            let init = 0;
+            this.chartData = iassign(
+                this.chartData,
+                s => s[i].data[index],
+                data => initValues[i]
+            );
+        }
+
+        return this.chartData;
     }
 
     public removeExercise(exercise: Exercise) {
@@ -109,27 +152,31 @@ export class ExerciseEventService {
 
     private registerForEvents(urls: string[]): Observable<ExerciseEvent> {
         
-            // TODO: Unsubscribe old Observables and close old EventSources
+            this.closeOldEvents();
 
-            let events = urls.map(url => new EventSource(url));
-            let events$: Observable<MessageEvent>[] = events.map(e => Observable.fromEvent(e, 'message'));
+            this.events = urls.map(url => new EventSource(url));
+            let events$: Observable<MessageEvent>[] = this.events.map(e => Observable.fromEvent(e, 'message'));
         
             return Observable.merge<MessageEvent>(...events$)
-                  .map(event => JSON.parse(event.data) as ExerciseEvent)
-                  .do(event => console.debug('event', event));
+                                .takeUntil(this.closeSubject)
+                                .map(event => JSON.parse(event.data) as ExerciseEvent)
+                                .do(event => console.debug('event', event));
+    }
+
+    private closeOldEvents() {
+        this.events.forEach(e => e.close());
+        this.closeSubject.next();
     }
 
     private updateStatistics(e: ExerciseEvent) {
-        let eventTypeIndex = this.eventTypeToIndex(e.what);
+        let index = this.eventTypeToIndex(e.what);
         let idIndex = this.idToIndex(e.exerciseId);
     
-        for (let i = 0; i<= 3; i++) {
-            this.chartData = iassign(
-                this.chartData,
-                s => s[i].data[idIndex],
-                s => (i == idIndex) ? s + 1 : s - 1
-            );
-        }
+        this.chartData = iassign(
+            this.chartData,
+            s => s[index].data[idIndex],
+            s => s + 1
+        );
     
         return this.chartData;
       }
@@ -140,7 +187,7 @@ export class ExerciseEventService {
           case 'STARTED': return 1;
           case 'COMPLETED': return 2;
           case 'ABORTED': return 3;
-          default: throw new Error('Unsupported EventType ' + type);
+          default: console.error('Unsupported EventType ' + type); return 0;
         }
       }
     

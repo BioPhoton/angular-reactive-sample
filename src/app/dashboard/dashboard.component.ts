@@ -83,8 +83,12 @@ export class DashboardComponent implements OnInit {
 
   }
 
+  get count() {
+    return this.eventService.count;
+  }
+
   filterChanged(e: Exercise, change: MatCheckboxChange) {
-    console.debug('filterChanged', change.checked, e);
+
     if (change.checked) {
       this.eventService.addExercise(e);
     }

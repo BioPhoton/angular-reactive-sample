@@ -1,3 +1,4 @@
+import { EventStats } from './event-stats';
 import { ExerciseEvent } from './exercise-event';
 import { Observable } from 'rxjs/Rx';
 import { Exercise } from './exercise';
@@ -16,6 +17,8 @@ export class ExerciseService {
         let url = this.baseUrl + '/exercises';
         return this.http.get<Exercise[]>(url);
     }
+
+
 
     postState(event: ExerciseEvent) {
         let url = this.baseUrl + '/exercises/events';
