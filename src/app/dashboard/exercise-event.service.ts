@@ -1,13 +1,16 @@
-import { HttpClient } from '@angular/common/http';
-import { EventStats } from './event-stats';
-import { BASE_URL } from '../app.tokens';
-import { ChartData } from './chart-data';
-import { ExerciseEvent, ExerciseEventType } from './exercise-event';
-import { BehaviorSubject, Subject } from 'rxjs/Rx';
-import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import {HttpClient} from '@angular/common/http';
+import {Inject, Injectable} from '@angular/core';
+import {Observable} from 'rxjs/Observable';
+import { map, startWith, takeUntil, tap } from 'rxjs/operators';
+import {switchMap} from 'rxjs/operators/switchMap';
+import {BehaviorSubject, Subject} from 'rxjs/Rx';
 
-import { Exercise } from './exercise';
+import {BASE_URL} from '../app.tokens';
+
+import {ChartData} from './chart-data';
+import {EventStats} from './event-stats';
+import {Exercise} from './exercise';
+import {ExerciseEvent, ExerciseEventType} from './exercise-event';
 
 declare let EventSource: any;
 
@@ -45,6 +48,7 @@ export class ExerciseEventService {
           return this.exercises.length;
       }
 
+      /*
     constructor(@Inject(BASE_URL) private baseUrl: string,
                 private http: HttpClient) { 
 
@@ -67,6 +71,33 @@ export class ExerciseEventService {
 
 
     }
+    */
+
+    constructor(@Inject(BASE_URL) private baseUrl: string,
+    private http: HttpClient) { 
+
+        
+        let initValues$ = this
+                            .exerciseAddedSubject.pipe(
+                                switchMap(e => this.findInitStats(e.id)),
+                                map(initData => this.mergeStatistics(initData))
+                            );
+
+
+        let calculatedValues$: Observable<ChartData[]> = 
+                    this
+                        .exercises$.pipe(
+                            map(e => this.mapExercisesToUrls(e)),
+                            switchMap(urls => this.registerForEvents(urls)),
+                            map(event => this.updateStatistics(event)),
+                            startWith(this.chartData),
+                            tap(chartData => console.debug('chartData', chartData))
+                        );
+        
+        this.chartData$ = Observable.merge(calculatedValues$, initValues$);
+
+
+}
 
     findInitStats(exerciseId: string): Observable<EventStats> {
         let url = this.baseUrl + `/exercises/${encodeURIComponent(exerciseId)}/eventstats`;
@@ -128,7 +159,6 @@ export class ExerciseEventService {
         ];
 
         this.exercisesSubject.next(this.exercises);
-        // this.startValues$.next(this.chartData);
     }
 
     private removeChartData(index: number) {
@@ -157,10 +187,21 @@ export class ExerciseEventService {
             this.events = urls.map(url => new EventSource(url));
             let events$: Observable<MessageEvent>[] = this.events.map(e => Observable.fromEvent(e, 'message'));
         
+            return Observable
+                    .merge<MessageEvent>(...events$)
+                    .pipe(
+                        takeUntil(this.closeSubject),
+                        map(event => JSON.parse(event.data) as ExerciseEvent),
+                        tap(event => console.debug('event', event))
+                    );
+
+            // Klassisches Piping
+            /*                                
             return Observable.merge<MessageEvent>(...events$)
-                                .takeUntil(this.closeSubject)
-                                .map(event => JSON.parse(event.data) as ExerciseEvent)
-                                .do(event => console.debug('event', event));
+                .takeUntil(this.closeSubject)
+                .map(event => JSON.parse(event.data) as ExerciseEvent)
+                .do(event => console.debug('event', event));
+            */
     }
 
     private closeOldEvents() {
