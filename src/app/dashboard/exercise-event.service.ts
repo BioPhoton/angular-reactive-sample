@@ -2,8 +2,9 @@ import {HttpClient} from '@angular/common/http';
 import {Inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import { map, startWith, takeUntil, tap } from 'rxjs/operators';
-import {switchMap} from 'rxjs/operators/switchMap';
-import {BehaviorSubject, Subject} from 'rxjs/Rx';
+import {switchMap} from 'rxjs/operators';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {Subject} from 'rxjs/Subject';
 
 import {BASE_URL} from '../app.tokens';
 
@@ -25,14 +26,16 @@ export class ExerciseEventService {
     private events = [];
     private closeSubject = new Subject<void>();
 
-    // Source Streams
+    // Quellen
     private exercises: Exercise[] = [];
     private exercisesSubject = new BehaviorSubject<Exercise[]>([]);
     public exercises$: Observable<Exercise[]> = this.exercisesSubject.asObservable();
 
+    public get count(): number { return this.exercises.length; }
+
     private exerciseAddedSubject = new Subject<Exercise>();
 
-    // Destination Streams
+    // Senken
 
     private chartData: ChartData[] = [
         {data: [], label: 'VIEWED'},
@@ -44,9 +47,7 @@ export class ExerciseEventService {
     public chartData$: Observable<ChartData[]>;
     
     
-      public get count(): number {
-          return this.exercises.length;
-      }
+    
 
       /*
     constructor(@Inject(BASE_URL) private baseUrl: string,
@@ -73,8 +74,9 @@ export class ExerciseEventService {
     }
     */
 
-    constructor(@Inject(BASE_URL) private baseUrl: string,
-    private http: HttpClient) { 
+    constructor(
+        @Inject(BASE_URL) private baseUrl: string,
+        private http: HttpClient) { 
 
         
         let initValues$ = this
@@ -97,7 +99,7 @@ export class ExerciseEventService {
         this.chartData$ = Observable.merge(calculatedValues$, initValues$);
 
 
-}
+    }
 
     findInitStats(exerciseId: string): Observable<EventStats> {
         let url = this.baseUrl + `/exercises/${encodeURIComponent(exerciseId)}/eventstats`;
@@ -196,12 +198,10 @@ export class ExerciseEventService {
                     );
 
             // Klassisches Piping
-            /*                                
-            return Observable.merge<MessageEvent>(...events$)
-                .takeUntil(this.closeSubject)
-                .map(event => JSON.parse(event.data) as ExerciseEvent)
-                .do(event => console.debug('event', event));
-            */
+            // return Observable.merge<MessageEvent>(...events$)
+            //     .takeUntil(this.closeSubject)
+            //     .map(event => JSON.parse(event.data) as ExerciseEvent)
+            //     .do(event => console.debug('event', event));
     }
 
     private closeOldEvents() {

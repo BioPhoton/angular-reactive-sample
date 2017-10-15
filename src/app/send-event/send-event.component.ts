@@ -1,7 +1,9 @@
-import { ExerciseEvent, ExerciseEventType } from '../dashboard/exercise-event';
-import { Exercise } from '../dashboard/exercise';
-import { ExerciseService } from '../dashboard/exercise.service';
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
+import {MatDialog, MatSnackBar} from '@angular/material';
+
+import {Exercise} from '../dashboard/exercise';
+import {ExerciseEvent, ExerciseEventType} from '../dashboard/exercise-event';
+import {ExerciseService} from '../dashboard/exercise.service';
 
 const USER_ID = 'cce9fe86-a7a9-466e-ae71-a5eaa4e5d8bb';
 
@@ -13,7 +15,8 @@ const USER_ID = 'cce9fe86-a7a9-466e-ae71-a5eaa4e5d8bb';
 export class SendEventComponent implements OnInit {
 
   constructor(
-    private exerciseService: ExerciseService
+    private exerciseService: ExerciseService,
+    private snackBar: MatSnackBar
   ) { }
 
   public exercises: Exercise[] = [];
@@ -31,6 +34,12 @@ export class SendEventComponent implements OnInit {
   }
 
   postState() {
+
+    if (!this.selectedExerciseId || !this.selectedState) {
+      this.snackBar.open('Please provide both, a exercise and a state!');
+      return;
+    }
+
     let event: ExerciseEvent = {
       exerciseId: this.selectedExerciseId,
       userId: USER_ID,
