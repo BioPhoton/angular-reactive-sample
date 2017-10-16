@@ -29,7 +29,6 @@ export class ExerciseEventService {
   // Quellen
   private allExercisesSubject = new BehaviorSubject<Exercise[]>([]);
   public allExercises$: Observable<Exercise[]> = this.allExercisesSubject.asObservable();
-  private exercises: Exercise[] = [];
   private exercisesSubject = new BehaviorSubject<Exercise[]>([]);
   public exercises$: Observable<Exercise[]> = this.exercisesSubject.asObservable();
 
@@ -62,14 +61,17 @@ export class ExerciseEventService {
         n => this.allExercisesSubject.next(n)
       );
 
-    let initValues$ = this
+    const initValues$ = this
       .exerciseAddedSubject.pipe(
         switchMap(e => this.findInitStats(e.id)),
-        map(initData => this.mergeStatistics(initData))
+        map(initData => {
+          console.log('initData', initData);
+          return this.mergeStatistics(initData)
+        })
       );
 
 
-    let calculatedValues$: Observable<ChartData[]> =
+    const calculatedValues$: Observable<ChartData[]> =
       this
         .exercises$.pipe(
         map(e => this.mapExercisesToUrls(e)),
@@ -84,27 +86,32 @@ export class ExerciseEventService {
   }
 
   findInitStats(exerciseId: string): Observable<EventStats> {
-    let url = this.baseUrl + `/exercises/${encodeURIComponent(exerciseId)}/eventstats`;
+    console.log('exerciseId', exerciseId)
+    const url = this.baseUrl + `/exercises/${encodeURIComponent(exerciseId)}/eventstats`;
     return this.http.get<EventStats>(url).map(stats => {
       return {...stats, exerciseId}
     });
   }
 
   public addExercise(exercise: Exercise) {
-    if (this.exercises.find(e => e.id == exercise.id)) return;
+    const actExer = this.exercisesSubject.getValue();
+
+    if (actExer.find(e => e.id === exercise.id)) {
+      return;
+    }
 
     this.addChartData();
-    this.exercises.push(exercise);
+    actExer.push(exercise);
 
     this.exerciseAddedSubject.next(exercise);
-    this.exercisesSubject.next(this.exercises);
+    this.exercisesSubject.next(actExer);
 
   }
 
   private addChartData() {
 
     for (let i = 0; i <= 3; i++) {
-      let init = 0;
+      const init = 0;
       this.chartData = iassign(
         this.chartData,
         s => s[i].data,
@@ -117,11 +124,11 @@ export class ExerciseEventService {
 
   private mergeStatistics(stats: EventStats): ChartData[] {
 
-    let initValues = [stats.VIEWED, stats.STARTED, stats.COMPLETED, stats.ABORTED];
-    let index = this.idToIndex(stats.exerciseId);
+    const initValues = [stats.VIEWED, stats.STARTED, stats.COMPLETED, stats.ABORTED];
+    const index = this.idToIndex(stats.exerciseId);
 
     for (let i = 0; i < initValues.length; i++) {
-      let init = 0;
+      const init = 0;
       this.chartData = iassign(
         this.chartData,
         s => s[i].data[index],
@@ -133,17 +140,20 @@ export class ExerciseEventService {
   }
 
   public removeExercise(exercise: Exercise) {
-    let index = this.exercises.findIndex(e => e.id == exercise.id);
-    if (index == -1) return;
+    let actExer = this.exercisesSubject.getValue();
+    const index = actExer.findIndex(e => e.id === exercise.id);
+    if (index === -1) {
+      return;
+    }
 
     this.removeChartData(index);
 
-    this.exercises = [
-      ...this.exercises.slice(0, index),
-      ...this.exercises.slice(index + 1),
+    actExer = [
+      ...actExer.slice(0, index),
+      ...actExer.slice(index + 1),
     ];
 
-    this.exercisesSubject.next(this.exercises);
+    this.exercisesSubject.next(actExer);
   }
 
   private removeChartData(index: number) {
@@ -170,7 +180,7 @@ export class ExerciseEventService {
     this.closeOldEvents();
 
     this.events = urls.map(url => new EventSource(url));
-    let events$: Observable<MessageEvent>[] = this.events.map(e => Observable.fromEvent(e, 'message'));
+    const events$: Observable<MessageEvent>[] = this.events.map(e => Observable.fromEvent(e, 'message'));
 
     return Observable
       .merge<MessageEvent>(...events$)
@@ -188,8 +198,8 @@ export class ExerciseEventService {
   }
 
   private updateStatistics(e: ExerciseEvent) {
-    let index = this.eventTypeToIndex(e.what);
-    let idIndex = this.idToIndex(e.exerciseId);
+    const index = this.eventTypeToIndex(e.what);
+    const idIndex = this.idToIndex(e.exerciseId);
 
     this.chartData = iassign(
       this.chartData,
@@ -217,7 +227,7 @@ export class ExerciseEventService {
   }
 
   private idToIndex(eventId: string) {
-    return this.exercises.findIndex(e => e.id == eventId);
+    return this.exercisesSubject.getValue().findIndex(e => e.id === eventId);
   }
 
 

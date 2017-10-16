@@ -26,7 +26,6 @@ export class DashboardComponent implements OnInit {
   public exerciseTitles$: Observable<string[]>;
 
   public allExercises$: Observable<Exercise[]>;
-  public exercises$: Observable<Exercise[]>;
 
   public barChartOptions: any = {
     scaleShowVerticalLines: true,
@@ -51,7 +50,6 @@ export class DashboardComponent implements OnInit {
   public barChartLegend: boolean = true;
 
   constructor(
-    private exerciseService: ExerciseService,
     private eventService: ExerciseEventService) {
   }
 
