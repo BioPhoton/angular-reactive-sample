@@ -15,7 +15,11 @@ export class ExerciseService {
 
     findAll(): Observable<Exercise[]> {
         let url = this.baseUrl + '/exercises';
-        return this.http.get<Exercise[]>(url);
+        return this.http.get<Exercise[]>(url)
+          .catch((err) => {
+          console.error('Error Loading Exercises', err);
+            return Observable.throw([]);
+        });
     }
 
 

@@ -7,7 +7,7 @@
         <mat-card-title>Filter</mat-card-title>
         <mat-divider></mat-divider>
         <mat-card-content>
-          <section *ngFor="let e of exercises">
+          <section *ngFor="let e of (allExercises$ | async)">
             <mat-checkbox (change)="filterChanged(e, $event)">{{e.title}}</mat-checkbox>
           </section>
         </mat-card-content>

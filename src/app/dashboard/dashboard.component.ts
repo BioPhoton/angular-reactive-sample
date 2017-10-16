@@ -24,8 +24,9 @@ export class DashboardComponent implements OnInit {
 
   public chartData$: Observable<ChartData[]>;
   public exerciseTitles$: Observable<string[]>;
-  
-  public exercises: Exercise[] = [];
+
+  public allExercises$: Observable<Exercise[]>;
+  public exercises$: Observable<Exercise[]>;
 
   public barChartOptions: any = {
     scaleShowVerticalLines: true,
@@ -56,30 +57,12 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
 
-    this.exerciseService.findAll().subscribe(
-      e => this.exercises = e,
-      err => console.error('Error Loading Exercises', err)
-    );
+    this.allExercises$ = this.eventService.allExercises$;
 
     this.exerciseTitles$ = this.eventService.exercises$.map(e => e.map(e => e.title));
     this.chartData$ = this.eventService.chartData$;
-    
+
     this.exerciseTitles$.subscribe(t => console.debug('titles', t));
-
-
-    /*
-    this.eventService.addExercise({ id: 'b7bf16e2-46fa-4411-9b1e-2a9e05d3be82', title: 'Test 1' });
-    this.eventService.addExercise({ id: '9da01173-f6da-4409-9177-4a5a18c6b484', title: 'Test 2' });
-    */
-
-
-    /*
-    this.urls$.next([
-        'http://hpgrahsl.northeurope.cloudapp.azure.com:8080/dashboard/api/exercises/b7bf16e2-46fa-4411-9b1e-2a9e05d3be82/eventstream',
-        'http://hpgrahsl.northeurope.cloudapp.azure.com:8080/dashboard/api/exercises/9da01173-f6da-4409-9177-4a5a18c6b484/eventstream'
-    ]);
-    */
-       
 
   }
 
@@ -99,14 +82,3 @@ export class DashboardComponent implements OnInit {
 
 
 }
-/*
-export class DashboardComponent {
-
-  colorScheme: any = {
-    domain: ['#1565C0', '#03A9F4', '#FFA726', '#FFCC80'],
-  };
-
-}
-
-
-*/
