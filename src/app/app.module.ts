@@ -19,6 +19,8 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { TestCardComponent } from './test-card/test-card.component';
 import { ChartsModule } from 'ng2-charts';
 import { SendEventComponent } from './send-event/send-event.component';
+import {NewDashboardComponent} from './dashboard/new-dashboard.component';
+import {NewExerciseEventService} from './dashboard/new-exercise-event.service';
 
 const CONTROL_MODULES = [
   MatCardModule,
@@ -52,12 +54,14 @@ const CONTROL_MODULES = [
   declarations: [
     AppComponent,
     DashboardComponent,
+    NewDashboardComponent,
     TestCardComponent,
     SendEventComponent
 ],
   providers: [
     ExerciseService,
     ExerciseEventService,
+    NewExerciseEventService,
     { provide: BASE_URL, useValue: 'http://hpgrahsl.northeurope.cloudapp.azure.com:8080/dashboard/api'}
   ],
   bootstrap: [AppComponent]

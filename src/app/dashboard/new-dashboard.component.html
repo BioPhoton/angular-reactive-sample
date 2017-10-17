@@ -1,0 +1,43 @@
+<div>
+
+  <div layout-gt-xs="row">
+
+    <div flex-gt-xs="25" layout="column">
+      <mat-card>
+        <mat-card-title>Filter</mat-card-title>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <section *ngFor="let e of (allExercises$ | async)">
+            <mat-checkbox (change)="filterChanged(e, $event)">{{e.title}}</mat-checkbox>
+          </section>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-title>Send Event</mat-card-title>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <send-event></send-event>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div flex-gt-xs="75">
+      <mat-card>
+        <mat-card-title>Exercises</mat-card-title>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <canvas baseChart
+                  [datasets]="chartData$ | async"
+                  [labels]="exerciseTitles$ | async"
+                  [colors]="lineChartColors"
+                  [options]="barChartOptions"
+                  [legend]="barChartLegend"
+                  [chartType]="barChartType"></canvas>
+
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+  </div>
+</div>
