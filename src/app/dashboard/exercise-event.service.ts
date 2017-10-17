@@ -27,8 +27,7 @@ export class ExerciseEventService {
   private closeSubject = new Subject<void>();
 
   // Quellen
-  private allExercisesSubject = new BehaviorSubject<Exercise[]>([]);
-  public allExercises$: Observable<Exercise[]> = this.allExercisesSubject.asObservable();
+  public allExercises$: Observable<Exercise[]> = this.exerciseService.findAll()
   private exercisesSubject = new BehaviorSubject<Exercise[]>([]);
   public exercises$: Observable<Exercise[]> = this.exercisesSubject.asObservable();
 
@@ -55,12 +54,6 @@ export class ExerciseEventService {
     private exerciseService: ExerciseService
   ) {
 
-    this.exerciseService
-      .findAll()
-      .subscribe(
-        n => this.allExercisesSubject.next(n)
-      );
-
     const initValues$ = this
       .exerciseAddedSubject.pipe(
         switchMap(e => this.findInitStats(e.id)),
@@ -74,6 +67,7 @@ export class ExerciseEventService {
     const calculatedValues$: Observable<ChartData[]> =
       this
         .exercises$.pipe(
+          tap(chartData =>  { console.log('chartData', chartData) }),
         map(e => this.mapExercisesToUrls(e)),
         switchMap(urls => this.registerForEvents(urls)),
         map(event => this.updateStatistics(event)),
@@ -127,6 +121,7 @@ export class ExerciseEventService {
     const initValues = [stats.VIEWED, stats.STARTED, stats.COMPLETED, stats.ABORTED];
     const index = this.idToIndex(stats.exerciseId);
 
+    console.log('XXX', stats, this.chartData)
     for (let i = 0; i < initValues.length; i++) {
       const init = 0;
       this.chartData = iassign(
@@ -229,6 +224,5 @@ export class ExerciseEventService {
   private idToIndex(eventId: string) {
     return this.exercisesSubject.getValue().findIndex(e => e.id === eventId);
   }
-
 
 }
